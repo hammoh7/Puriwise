@@ -1,20 +1,39 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { prisma } from '@/lib/prisma'; // adjust if your prisma client path differs
+import { NextRequest, NextResponse } from 'next/server';
 
-const ensureConnection = async () => {
-  if (!prisma) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+export async function PUT(request: NextRequest, context: { params: { userId: string } }) {
+  try {
+    const { userId } = context.params;
+    const data = await request.json();
+
+    // Check if the user exists
+    const existingUser = await prisma.userProfile.findUnique({
+      where: { uid: userId },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const updatedProfile = await prisma.userProfile.update({
+      where: { uid: userId },
+      data,
+    });
+
+    return NextResponse.json(updatedProfile);
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
   }
-};
+}
+
 
 export async function GET(
   request: Request,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) {
   try {
-    await ensureConnection();
-
-    const userId = params.userId;
+    const userId = context.params.userId;
     console.log(`Fetching profile for user: ${userId}`);
 
     const userProfile = await prisma.userProfile.findUnique({
@@ -39,27 +58,3 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { userId: string } }
-) {
-  try {
-    await ensureConnection();
-
-    const userId = params.userId;
-    const data = await request.json();
-
-    const updatedProfile = await prisma.userProfile.update({
-      where: { uid: userId },
-      data,
-    });
-
-    return NextResponse.json(updatedProfile);
-  } catch (error: any) {
-    console.error("Profile update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update profile", details: error.message },
-      { status: 500 }
-    );
-  }
-}
