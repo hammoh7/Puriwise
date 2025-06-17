@@ -13,14 +13,15 @@ model UserProfile {
   uid              String     @unique
   email            String
   age              Int?
-  healthConditions String[]   @default([])   // e.g. ["Asthma", "None"]
-  activityLevel    String?    // e.g. "Sedentary", "Moderate", "Active"
-  savedCities      String[]   @default([])  // e.g. ["Delhi", "Bengaluru"]
-  lastAQIReport    AQIReport? // embedded object
+  healthConditions String[]   @default([])   
+  activityLevel    String?    
+  savedCities      String[]   @default([])  
+  lastAQIReport    AQIReport?
   profileComplete  Boolean    @default(false)
-  currentLocation  String?    // Added: Stores city or postal code
-  currentLat       Float?     // Added: Latitude
-  currentLon       Float?     // Added: Longitude
+  currentLocation  String?   
+  currentLat       Float?     
+  currentLon       Float?     
+  healthReports    HealthReport[]
 
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
@@ -30,6 +31,14 @@ type AQIReport {
   location String // city or postal code
   aqi      Int    // numeric AQI
   severity String // "low", "medium", "high"
+}
+
+model HealthReport {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  reportText  String    // The generated health advice
+  createdAt   DateTime  @default(now())
+  user        UserProfile @relation(fields: [userId], references: [id])
 }
 
 model StreetSegment {

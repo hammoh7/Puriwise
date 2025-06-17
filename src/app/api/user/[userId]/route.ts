@@ -1,7 +1,10 @@
-import { prisma } from '@/lib/prisma'; 
-import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(request: NextRequest, context: { params: { userId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  context: { params: { userId: string } }
+) {
   try {
     const { userId } = context.params;
     const data = await request.json();
@@ -11,7 +14,7 @@ export async function PUT(request: NextRequest, context: { params: { userId: str
     });
 
     if (!existingUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const updatedProfile = await prisma.userProfile.update({
@@ -21,11 +24,13 @@ export async function PUT(request: NextRequest, context: { params: { userId: str
 
     return NextResponse.json(updatedProfile);
   } catch (error) {
-    console.error('Profile update error:', error);
-    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
+    console.error("Profile update error:", error);
+    return NextResponse.json(
+      { error: "Failed to update user profile" },
+      { status: 500 }
+    );
   }
 }
-
 
 export async function GET(
   request: Request,
@@ -37,6 +42,7 @@ export async function GET(
 
     const userProfile = await prisma.userProfile.findUnique({
       where: { uid: userId },
+      include: { healthReports: true },
     });
 
     if (userProfile) {
@@ -56,4 +62,3 @@ export async function GET(
     );
   }
 }
-

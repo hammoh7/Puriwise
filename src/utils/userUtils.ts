@@ -1,4 +1,3 @@
-//updated
 export const fetchUserData = async (userId: string) => {
   try {
     const response = await fetch(`/api/user/${userId}`);
