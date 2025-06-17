@@ -38,7 +38,6 @@ export async function GET(
 ) {
   try {
     const userId = context.params.userId;
-    console.log(`Fetching profile for user: ${userId}`);
 
     const userProfile = await prisma.userProfile.findUnique({
       where: { uid: userId },

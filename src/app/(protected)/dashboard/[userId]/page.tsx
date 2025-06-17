@@ -40,7 +40,6 @@ const DashboardPage = () => {
     const fetchAQIForLocation = async () => {
       if (lat !== null && lon !== null) {
         try {
-          console.log(`Fetching AQI for lat: ${lat}, lon: ${lon}`);
           const aqiValue = await fetchAQI(lat, lon);
           setAqi(aqiValue);
           if (aqiValue !== null && user) {

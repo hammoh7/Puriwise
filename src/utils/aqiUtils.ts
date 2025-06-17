@@ -22,7 +22,6 @@ export const fetchAQI = async (lat: number, lon: number): Promise<number | null>
     if (!response.ok) throw new Error(`API error: ${response.status}`);
 
     const data = await response.json();
-    console.log("Google AQI Response:", data); 
 
     if (data && data.indexes && data.indexes.length > 0) {
       const aqiIndex = data.indexes.find((index: any) => index.aqi);

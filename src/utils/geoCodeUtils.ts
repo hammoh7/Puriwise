@@ -42,7 +42,6 @@ export const getCoordsFromLocation = async (
   const data = await response.json();
   if (data.results?.length) {
     const { lat, lng } = data.results[0].geometry;
-    console.log(`Geocoded ${location} to lat: ${lat}, lon: ${lng}`);
     return { lat, lon: lng };
   }
   throw new Error("Location not found");

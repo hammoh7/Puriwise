@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    
+
 
     const rawResult = await prisma.$runCommandRaw({
       aggregate: "HealthReport",
@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
     });
 
     const result = rawResult as unknown as AggregationResponse;
-    console.log("Raw Search Result:", rawResult); 
     const reports = result.cursor?.firstBatch || [];
     if (!Array.isArray(reports)) {
       throw new Error("Unexpected response format from Atlas Search");
