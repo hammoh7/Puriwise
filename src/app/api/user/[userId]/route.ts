@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = context.params;
+    const { userId } = await context.params;
     const data = await request.json();
 
     const existingUser = await prisma.userProfile.findUnique({
@@ -34,10 +34,10 @@ export async function PUT(
 
 export async function GET(
   request: Request,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId = context.params.userId;
+    const { userId } = await context.params;
 
     const userProfile = await prisma.userProfile.findUnique({
       where: { uid: userId },
