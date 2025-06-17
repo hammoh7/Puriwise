@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --primary-light: #faf8f0;
+  --primary: #f8f3e0;
+  --primary-dark: #f0e8d0;
+  --accent: #d4a76a;
+  --accent-light: #e8d8b8;
+  --accent-dark: #b8955a;
+  --secondary: #a7c7b7;
+  --secondary-light: #d1e5dc;
+  --secondary-dark: #7aa895;
+  --text: #333333;
+  --text-light: #666666;
+  --white: #ffffff;
+  --options: #ef6d1195;
+  --options-dark: #ef6d11f1;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background-color: var(--primary);
+  color: var(--text);
+  background-image: radial-gradient(var(--primary-light) 15%, transparent 16%), 
+                    radial-gradient(var(--primary-light) 15%, transparent 16%);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+/* Globe container */
+.globe-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.globe-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 0 0 16px 16px;
+}

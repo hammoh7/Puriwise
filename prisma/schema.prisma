@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  uid              String     @unique
+  email            String
+  age              Int?
+  healthConditions String[]   @default([])   // e.g. ["Asthma", "None"]
+  activityLevel    String?    // e.g. "Sedentary", "Moderate", "Active"
+  savedCities      String[]   @default([])  // e.g. ["Delhi", "Bengaluru"]
+  lastAQIReport    AQIReport? // embedded object
+  profileComplete  Boolean    @default(false)
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+type AQIReport {
+  location String // city or postal code
+  aqi      Int    // numeric AQI
+  severity String // "low", "medium", "high"
+}
+
+model StreetSegment {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  geometry  Json      // GeoJSON LineString
+  embedding Float[]   // e.g. [avgAQI, lengthMeters, trafficScore, …] dimension = 16
+
+  createdAt DateTime  @default(now())
+}
+
+model Report {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl      String     // stored in CDN or GridFS
+  location      Json       // GeoJSON Point { type: "Point", coordinates: [lng, lat] }
+  category      String     // user’s chosen tag, e.g. "burning", "dust"
+  visionLabels  String[]   // e.g. ["smoke", "fire"]
+  embedding     Float[]    // e.g. 128‑dim vector from Vision‑API embeddings
+  timestamp     DateTime   @default(now())
+}
