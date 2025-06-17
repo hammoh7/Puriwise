@@ -18,6 +18,9 @@ model UserProfile {
   savedCities      String[]   @default([])  // e.g. ["Delhi", "Bengaluru"]
   lastAQIReport    AQIReport? // embedded object
   profileComplete  Boolean    @default(false)
+  currentLocation  String?    // Added: Stores city or postal code
+  currentLat       Float?     // Added: Latitude
+  currentLon       Float?     // Added: Longitude
 
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt

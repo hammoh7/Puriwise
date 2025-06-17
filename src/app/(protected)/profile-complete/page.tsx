@@ -26,10 +26,8 @@ export default function CompleteProfile() {
         profileComplete: true,
       });
 
-      // Use replace to force a complete navigation and re-evaluation
       router.replace(`/dashboard/${user.uid}`);
 
-      // Force a page reload as a fallback
       window.location.href = `/dashboard/${user.uid}`;
     } catch (error) {
       console.error("Profile update failed:", error);

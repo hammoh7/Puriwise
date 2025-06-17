@@ -40,45 +40,6 @@ export default function Home() {
               tips.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              {user ? (
-                <div className="relative">
-                  <img
-                    src={user.photoURL || "/default-avatar.png"}
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full cursor-pointer"
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                  />
-                  {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
-                      <Link
-                        href={`/dashboard/${user.uid}`}
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        onClick={() => {
-                          try {
-                            signOut(auth);
-                            router.push("/");
-                          } catch (error) {
-                            console.error("Error signing out: ", error);
-                          }
-                        }}
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link href="/register">
-                  <button className="bg-white cursor-pointer hover:bg-accent-dark text-accent py-3 px-8 rounded-full font-medium transition-colors shadow-md hover:shadow-lg text-lg">
-                    Start Your Journey
-                  </button>
-                </Link>
-              )}
               <button className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 py-3 px-8 rounded-full font-medium transition-colors text-lg">
                 Learn More
               </button>
@@ -171,9 +132,6 @@ export default function Home() {
             quality exposure.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <button className="bg-white text-accent hover:bg-primary-light py-3 px-8 rounded-full font-medium shadow-lg transition-colors text-lg">
-              Get Started Free
-            </button>
             <button className="bg-transparent border-2 border-white text-accent hover:bg-white/10 py-3 px-8 rounded-full font-medium transition-colors text-lg">
               View Demo
             </button>

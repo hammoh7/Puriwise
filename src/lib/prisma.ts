@@ -1,7 +1,6 @@
 import { PrismaClient } from "../generated/prisma";
 
 declare global {
-  // Allow global prisma reuse in development
   var prisma: PrismaClient | undefined;
 }
 

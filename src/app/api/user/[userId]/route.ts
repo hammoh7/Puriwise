@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'; // adjust if your prisma client path differs
+import { prisma } from '@/lib/prisma'; 
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(request: NextRequest, context: { params: { userId: string } }) {
@@ -6,7 +6,6 @@ export async function PUT(request: NextRequest, context: { params: { userId: str
     const { userId } = context.params;
     const data = await request.json();
 
-    // Check if the user exists
     const existingUser = await prisma.userProfile.findUnique({
       where: { uid: userId },
     });
