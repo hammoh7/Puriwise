@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 import { updateProfile } from "@/utils/userUtils";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CompleteProfile() {
   const { user } = useAuth();
@@ -15,17 +15,22 @@ export default function CompleteProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || age === "") return;
-    
+
     setLoading(true);
-    
+
     try {
       await updateProfile(user.uid, {
         age: Number(age),
         activityLevel,
         healthConditions,
-        profileComplete: true
+        profileComplete: true,
       });
-      router.push(`/dashboard/${user.uid}`);
+
+      // Use replace to force a complete navigation and re-evaluation
+      router.replace(`/dashboard/${user.uid}`);
+
+      // Force a page reload as a fallback
+      window.location.href = `/dashboard/${user.uid}`;
     } catch (error) {
       console.error("Profile update failed:", error);
       alert("Profile update failed. Please try again.");
@@ -35,9 +40,9 @@ export default function CompleteProfile() {
   };
 
   const toggleCondition = (condition: string) => {
-    setHealthConditions(prev => 
-      prev.includes(condition) 
-        ? prev.filter(c => c !== condition) 
+    setHealthConditions((prev) =>
+      prev.includes(condition)
+        ? prev.filter((c) => c !== condition)
         : [...prev, condition]
     );
   };
@@ -54,13 +59,15 @@ export default function CompleteProfile() {
             <input
               type="number"
               value={age}
-              onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : "")}
+              onChange={(e) =>
+                setAge(e.target.value ? parseInt(e.target.value) : "")
+              }
               required
               min="1"
               className="w-full p-3 border rounded-lg"
             />
           </div>
-          
+
           <div>
             <label className="block mb-2 font-medium">Activity Level</label>
             <select
@@ -73,26 +80,31 @@ export default function CompleteProfile() {
               <option value="Active">Active</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block mb-2 font-medium">
               Health Conditions (select all that apply)
             </label>
             <div className="space-y-2">
-              {["Asthma", "Allergies", "Heart Condition", "None"].map(condition => (
-                <label key={condition} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={healthConditions.includes(condition)}
-                    onChange={() => toggleCondition(condition)}
-                    className="form-checkbox"
-                  />
-                  <span>{condition}</span>
-                </label>
-              ))}
+              {["Asthma", "Allergies", "Heart Condition", "None"].map(
+                (condition) => (
+                  <label
+                    key={condition}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={healthConditions.includes(condition)}
+                      onChange={() => toggleCondition(condition)}
+                      className="form-checkbox"
+                    />
+                    <span>{condition}</span>
+                  </label>
+                )
+              )}
             </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
