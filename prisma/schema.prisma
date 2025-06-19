@@ -22,39 +22,57 @@ model UserProfile {
   currentLat       Float?     
   currentLon       Float?     
   healthReports    HealthReport[]
+  savedRoutes      SavedRoute[] 
 
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 }
 
 type AQIReport {
-  location String // city or postal code
-  aqi      Int    // numeric AQI
-  severity String // "low", "medium", "high"
+  location String 
+  aqi      Int    
+  severity String 
 }
 
 model HealthReport {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   userId      String    @db.ObjectId
-  reportText  String    // The generated health advice
+  reportText  String    
   createdAt   DateTime  @default(now())
   user        UserProfile @relation(fields: [userId], references: [id])
 }
 
 model StreetSegment {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  geometry  Json      // GeoJSON LineString
-  embedding Float[]   // e.g. [avgAQI, lengthMeters, trafficScore, …] dimension = 16
+  geometry  Json      
+  embedding Float[]   
 
   createdAt DateTime  @default(now())
 }
 
+model SavedRoute {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String      @db.ObjectId
+  name      String?     
+  start     Json       
+  startName String?    
+  end       Json        
+  endName   String?    
+  routeType String     
+  polyline  String      
+  exposure  Float      
+  distance  Float       
+  time      Float       
+  createdAt DateTime    @default(now())
+  user      UserProfile @relation(fields: [userId], references: [id])
+}
+
 model Report {
   id            String     @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl      String     // stored in CDN or GridFS
-  location      Json       // GeoJSON Point { type: "Point", coordinates: [lng, lat] }
-  category      String     // user’s chosen tag, e.g. "burning", "dust"
-  visionLabels  String[]   // e.g. ["smoke", "fire"]
-  embedding     Float[]    // e.g. 128‑dim vector from Vision‑API embeddings
+  imageUrl      String     
+  location      Json       
+  category      String     
+  visionLabels  String[]   
+  embedding     Float[]   
   timestamp     DateTime   @default(now())
 }
