@@ -114,7 +114,10 @@ const DashboardPage = () => {
   };
 
   const navigateToCleanRoute = () => {
-    setIsComingSoonModalOpen(true);
+    if (user?.uid) {
+      router.push(`/dashboard/${user.uid}/clean-finder`);
+    }
+    // setIsComingSoonModalOpen(true);
   };
 
   const ComingSoonModal = () => {
@@ -383,7 +386,6 @@ const DashboardPage = () => {
             onClick={navigateToCleanRoute}
             className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 p-8 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 relative"
           >
-            {/* Coming Soon Badge */}
             <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
               Coming Soon
             </div>
