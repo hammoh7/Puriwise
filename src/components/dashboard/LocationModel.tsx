@@ -88,12 +88,6 @@ const LocationModel = ({ isOpen, onClose, onLocationSet }: LocationModelProps) =
               >
                 Allow Access
               </button>
-              {/* <button
-                onClick={handleAddManually}
-                className="bg-gray-200 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-300 transition duration-300 transform hover:scale-105"
-              >
-                Add Manually
-              </button> */}
             </div>
           </>
         ) : (

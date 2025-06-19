@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { googleMapsLoader } from "@/utils/googleLoader";
 
 interface MapComponentProps {
   lat: number;
@@ -17,12 +17,7 @@ const MapComponent = ({ lat, lon }: MapComponentProps) => {
       if (!mapRef.current) return;
 
       if (!mapInstance.current) {
-        const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-          version: "weekly",
-        });
-
-        await loader.load();
+        await googleMapsLoader.load();
 
         mapInstance.current = new google.maps.Map(mapRef.current, {
           center: { lat, lng: lon },
