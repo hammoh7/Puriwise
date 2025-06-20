@@ -325,7 +325,6 @@ const NavigationPage = () => {
         }`}
       />
 
-      {/* Loading Overlay */}
       {isLoading && (
         <div className="fixed inset-0 bg-yellow-50/90 backdrop-blur-sm flex flex-col justify-center items-center z-[1002] animate-in fade-in duration-300">
           <div className="w-12 h-12 border-4 border-yellow-200 border-t-orange-500 rounded-full animate-spin" />
@@ -335,7 +334,6 @@ const NavigationPage = () => {
         </div>
       )}
 
-      {/* Start Option Modal */}
       {showStartOption && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-md flex justify-center items-center z-[1000] animate-in fade-in duration-300"
@@ -385,7 +383,6 @@ const NavigationPage = () => {
         </div>
       )}
 
-      {/* Error Banner */}
       {geoError && (
         <div
           className="absolute top-5 left-5 right-5 bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-2xl shadow-lg shadow-red-500/30 z-[1001] flex justify-between items-start animate-in slide-in-from-top-4 duration-500"
@@ -415,7 +412,6 @@ const NavigationPage = () => {
         </div>
       )}
 
-      {/* Navigation Info Panel */}
       <div className="absolute bottom-8 left-5 right-5 bg-gradient-to-br from-white/95 to-yellow-50/95 backdrop-blur-xl p-6 rounded-3xl shadow-xl border border-yellow-200/50 z-10 transition-all duration-300">
         {!navigationStarted ? (
           <div className="text-center">
@@ -429,7 +425,6 @@ const NavigationPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
-            {/* Starting Location */}
             <div className="text-center">
               <div className="text-xl mb-2">
                 {useCurrentLocation ? "📍" : "🎯"}
@@ -442,7 +437,6 @@ const NavigationPage = () => {
               </p>
             </div>
 
-            {/* Estimated Time */}
             <div className="text-center">
               <div className="text-xl mb-2">⏱️</div>
               <p className="m-0 text-xs text-yellow-700 font-medium uppercase tracking-wider">
@@ -453,7 +447,6 @@ const NavigationPage = () => {
               </p>
             </div>
 
-            {/* AQI */}
             <div className="text-center">
               <div className="text-xl mb-2">🌬️</div>
               <p className="m-0 text-xs text-yellow-700 font-medium uppercase tracking-wider">

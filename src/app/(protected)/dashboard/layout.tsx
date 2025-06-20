@@ -12,7 +12,7 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.push("/");
       return;
     }
 

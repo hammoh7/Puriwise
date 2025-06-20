@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { googleMapsLoader } from "@/utils/googleLoader";
 import { getLocationFromCoords } from "@/utils/geoCodeUtils";
+import { useRoute } from "@/context/RouteContext";
+import { useRouter } from "next/navigation";
+import HeaderBar from "@/components/dashboard/Headerbar";
 
 interface SavedRoute {
   id: string;
@@ -21,6 +24,8 @@ interface SavedRoute {
 
 const CleanAirFinder = () => {
   const { user } = useAuth();
+  const router = useRouter();
+  const { setRouteData } = useRoute();
   const [start, setStart] = useState<{
     lat: number;
     lng: number;
@@ -32,6 +37,7 @@ const CleanAirFinder = () => {
     name?: string;
   } | null>(null);
   const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [routes, setRoutes] = useState<{
     fastest: {
       polyline: string;
@@ -52,6 +58,7 @@ const CleanAirFinder = () => {
     lat: number | null;
     lng: number | null;
   }>({ lat: null, lng: null });
+  const [isLoading, setIsLoading] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const startInputRef = useRef<HTMLInputElement>(null);
   const endInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +130,18 @@ const CleanAirFinder = () => {
         const mapInstance = new google.maps.Map(mapRef.current, {
           center,
           zoom,
+          styles: [
+            {
+              featureType: "all",
+              elementType: "geometry.fill",
+              stylers: [{ color: "#fef3c7" }],
+            },
+            {
+              featureType: "water",
+              elementType: "geometry.fill",
+              stylers: [{ color: "#93c5fd" }],
+            },
+          ],
         });
         setMap(mapInstance);
 
@@ -187,6 +206,7 @@ const CleanAirFinder = () => {
 
   const handleCurrentLocation = () => {
     if (navigator.geolocation) {
+      setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
@@ -235,9 +255,12 @@ const CleanAirFinder = () => {
             if (map) {
               map.setCenter({ lat: latitude, lng: longitude });
             }
+          } finally {
+            setIsLoading(false);
           }
         },
         (error) => {
+          setIsLoading(false);
           let message = "Unable to retrieve your location. Please try again.";
           if (error.code === error.PERMISSION_DENIED) {
             message =
@@ -269,6 +292,7 @@ const CleanAirFinder = () => {
 
     try {
       setError(null);
+      setIsLoading(true);
       const response = await fetch(
         `/api/cleanroute?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}&userId=${userProfileId}`
       );
@@ -302,7 +326,7 @@ const CleanAirFinder = () => {
 
       const fastestPath = new google.maps.Polyline({
         path: decodePolyline(data.fastest.polyline),
-        strokeColor: "#0000FF",
+        strokeColor: "#3B82F6",
         strokeOpacity: 0.8,
         strokeWeight: 5,
         zIndex: 10,
@@ -311,7 +335,7 @@ const CleanAirFinder = () => {
 
       const cleanestPath = new google.maps.Polyline({
         path: decodePolyline(data.cleanest.polyline),
-        strokeColor: "#00FF00",
+        strokeColor: "#10B981",
         strokeOpacity: 0.8,
         strokeWeight: 5,
         zIndex: 5,
@@ -331,27 +355,39 @@ const CleanAirFinder = () => {
     } catch (error) {
       console.error("Error fetching routes:", error);
       setError(`Failed to fetch or display routes: ${String(error)}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const navigateRoute = (typeOrRoute: "fastest" | "cleanest" | SavedRoute) => {
-    let originLat: number, originLng: number, destLat: number, destLng: number;
-
+    let routeData;
     if (typeof typeOrRoute === "string") {
       if (!routes || !start || !end) return;
-      originLat = start.lat;
-      originLng = start.lng;
-      destLat = end.lat;
-      destLng = end.lng;
+      routeData = {
+        polyline: routes[typeOrRoute].polyline,
+        routeType: typeOrRoute,
+        distance: routes[typeOrRoute].distance,
+        start: { lat: start.lat, lng: start.lng },
+        end: { lat: end.lat, lng: end.lng },
+      };
     } else {
-      originLat = typeOrRoute.start.coordinates[1];
-      originLng = typeOrRoute.start.coordinates[0]; 
-      destLat = typeOrRoute.end.coordinates[1];
-      destLng = typeOrRoute.end.coordinates[0]; 
+      routeData = {
+        polyline: typeOrRoute.polyline,
+        routeType: typeOrRoute.routeType,
+        distance: typeOrRoute.distance,
+        start: {
+          lat: typeOrRoute.start.coordinates[1],
+          lng: typeOrRoute.start.coordinates[0],
+        },
+        end: {
+          lat: typeOrRoute.end.coordinates[1],
+          lng: typeOrRoute.end.coordinates[0],
+        },
+      };
     }
-
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=walking`;
-    window.open(url, "_blank");
+    setRouteData(routeData);
+    router.push(`/dashboard/${user?.uid}/clean-finder/navigate`);
   };
 
   const saveRoute = async (type: "fastest" | "cleanest") => {
@@ -448,7 +484,7 @@ const CleanAirFinder = () => {
 
     const path = new google.maps.Polyline({
       path: decodePolyline(route.polyline),
-      strokeColor: route.routeType === "fastest" ? "#0000FF" : "#00FF00",
+      strokeColor: route.routeType === "fastest" ? "#3B82F6" : "#10B981",
       strokeOpacity: 0.8,
       strokeWeight: 5,
       zIndex: 10,
@@ -463,162 +499,430 @@ const CleanAirFinder = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Clean-Air Route Finder</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <div
-        style={{ marginBottom: "20px", display: "flex", alignItems: "center" }}
-      >
-        <input
-          ref={startInputRef}
-          type="text"
-          placeholder="Start location"
-          style={{ marginRight: "10px", padding: "5px", flex: 1 }}
-        />
-        <button
-          onClick={handleCurrentLocation}
-          style={{
-            padding: "5px 10px",
-            background: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Current Location
-        </button>
-        <input
-          ref={endInputRef}
-          type="text"
-          placeholder="End location"
-          style={{
-            marginLeft: "10px",
-            marginRight: "10px",
-            padding: "5px",
-            flex: 1,
-          }}
-        />
-        <button
-          onClick={fetchRoutes}
-          disabled={!start || !end || !userProfileId}
-          style={{
-            padding: "5px 10px",
-            background: "#007BFF",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor:
-              !start || !end || !userProfileId ? "not-allowed" : "pointer",
-          }}
-        >
-          Find Routes
-        </button>
-      </div>
-      <div
-        ref={mapRef}
-        style={{ height: "400px", width: "100%", marginBottom: "20px" }}
-      />
-      {routes && (
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ marginBottom: "20px" }}>
-            <h2>Fastest Route (Blue)</h2>
-            <p>Distance: {(routes.fastest.distance / 1000).toFixed(2)} km</p>
-            <p>Time: {Math.round(routes.fastest.time / 60)} minutes</p>
-            <p>Exposure Score: {routes.fastest.exposure.toFixed(2)}</p>
-            <button onClick={() => navigateRoute("fastest")}>Navigate</button>
-            <button
-              onClick={() => saveRoute("fastest")}
-              style={{ marginLeft: "10px" }}
-            >
-              Save
-            </button>
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <HeaderBar onLocationClick={() => setIsLocationModalOpen(false)} />
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-800 mb-4 tracking-tight">
+            🌟 Clean-Air Route Finder 🌟
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover the cleanest paths to your destination and breathe easier
+            on every journey
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <span className="text-2xl mr-3">⚠️</span>
+              <p className="font-medium">{error}</p>
+            </div>
           </div>
-          <div>
-            <h2>Cleanest Route (Green)</h2>
-            <p>Distance: {(routes.cleanest.distance / 1000).toFixed(2)} km</p>
-            <p>Time: {Math.round(routes.cleanest.time / 60)} minutes</p>
-            <p>Exposure Score: {routes.cleanest.exposure.toFixed(2)}</p>
-            <button onClick={() => navigateRoute("cleanest")}>Navigate</button>
-            <button
-              onClick={() => saveRoute("cleanest")}
-              style={{ marginLeft: "10px" }}
-            >
-              Save
-            </button>
+        )}
+
+        <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 mb-8 border border-yellow-200/50">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Plan Your Clean Journey
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+                <input
+                  ref={startInputRef}
+                  type="text"
+                  placeholder="Starting location..."
+                  className="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-yellow-200 focus:ring-4 focus:ring-yellow-200/50 focus:border-yellow-400 outline-none transition-all duration-300 bg-white/80 text-gray-800 placeholder-gray-500 group-hover:border-yellow-300"
+                />
+                <label className="absolute -top-2 left-4 px-2 bg-white text-xs font-semibold text-gray-600 rounded">
+                  📍 From
+                </label>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                </div>
+                <input
+                  ref={endInputRef}
+                  type="text"
+                  placeholder="Destination..."
+                  className="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-yellow-200 focus:ring-4 focus:ring-yellow-200/50 focus:border-yellow-400 outline-none transition-all duration-300 bg-white/80 text-gray-800 placeholder-gray-500 group-hover:border-yellow-300"
+                />
+                <label className="absolute -top-2 left-4 px-2 bg-white text-xs font-semibold text-gray-600 rounded">
+                  🎯 To
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
+                onClick={handleCurrentLocation}
+                disabled={isLoading}
+                className="group relative px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-w-[180px]"
+              >
+                <div className="flex items-center justify-center">
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span>Locating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        ></path>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                      </svg>
+                      <span>Use My Location</span>
+                    </>
+                  )}
+                </div>
+              </button>
+
+              <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
+              <div className="sm:hidden w-8 h-px bg-gray-300"></div>
+
+              <button
+                onClick={fetchRoutes}
+                disabled={!start || !end || !userProfileId || isLoading}
+                className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-w-[200px]"
+              >
+                <div className="flex items-center justify-center">
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span>Finding Routes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
+                        ></path>
+                      </svg>
+                      <span>Find Clean Routes</span>
+                    </>
+                  )}
+                </div>
+
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"></div>
+              </button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-500 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 mr-2 text-yellow-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+                Start typing to search for locations or use your current
+                location
+              </p>
+            </div>
           </div>
         </div>
-      )}
-      <div style={{ marginTop: "20px" }}>
-        <h2>Saved Routes</h2>
-        {savedRoutes.length === 0 ? (
-          <p>No saved routes found.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {savedRoutes.map((route) => (
-              <li
-                key={route.id}
-                style={{
-                  padding: "10px",
-                  border: "1px solid #ccc",
-                  marginBottom: "10px",
-                  cursor: "pointer",
-                }}
-                onClick={() => displaySavedRoute(route)}
-              >
-                <h3>{route.name || "Unnamed Route"}</h3>
-                <p>Type: {route.routeType}</p>
-                <p>Distance: {(route.distance / 1000).toFixed(2)} km</p>
-                <p>Time: {Math.round(route.time / 60)} minutes</p>
-                <p>Exposure Score: {route.exposure.toFixed(2)}</p>
-                <p>
-                  Start:{" "}
-                  {route.startName ||
-                    `${route.start.coordinates[1]}, ${route.start.coordinates[0]}`}
-                </p>
-                <p>
-                  End:{" "}
-                  {route.endName ||
-                    `${route.end.coordinates[1]}, ${route.end.coordinates[0]}`}
-                </p>
-                <p>Saved: {new Date(route.createdAt).toLocaleString()}</p>
-                <div style={{ marginTop: "10px" }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigateRoute(route);
-                    }}
-                    style={{
-                      background: "#007BFF",
-                      color: "white",
-                      padding: "5px 10px",
-                      marginRight: "10px",
-                      border: "none",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    Navigate
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteRoute(route.id);
-                    }}
-                    style={{
-                      background: "red",
-                      color: "white",
-                      padding: "5px 10px",
-                      border: "none",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    Delete
-                  </button>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-6 mb-8 border border-yellow-200">
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">
+              🗺️ Interactive Route Map
+            </h2>
+            <p className="text-gray-600">
+              Blue line = Fastest Route | Green line = Cleanest Route
+            </p>
+          </div>
+          <div
+            ref={mapRef}
+            className="w-full h-96 rounded-2xl shadow-inner border-2 border-yellow-100"
+          />
+        </div>
+
+        {routes && (
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl p-8 shadow-xl border border-blue-200">
+              <div className="flex items-center mb-6">
+                <div className="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
+                <h2 className="text-2xl font-bold text-blue-800">
+                  ⚡ Fastest Route
+                </h2>
+              </div>
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">
+                    📏 Distance:
+                  </span>
+                  <span className="text-blue-700 font-bold">
+                    {(routes.fastest.distance / 1000).toFixed(2)} km
+                  </span>
                 </div>
-              </li>
-            ))}
-          </ul>
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">⏱️ Time:</span>
+                  <span className="text-blue-700 font-bold">
+                    {Math.round(routes.fastest.time / 60)} minutes
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">
+                    🌫️ Exposure Score:
+                  </span>
+                  <span className="text-blue-700 font-bold">
+                    {routes.fastest.exposure.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigateRoute("fastest")}
+                  className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  🧭 Navigate
+                </button>
+                <button
+                  onClick={() => saveRoute("fastest")}
+                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  💾 Save Route
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-8 shadow-xl border border-green-200">
+              <div className="flex items-center mb-6">
+                <div className="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
+                <h2 className="text-2xl font-bold text-green-800">
+                  🌿 Cleanest Route
+                </h2>
+              </div>
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">
+                    📏 Distance:
+                  </span>
+                  <span className="text-green-700 font-bold">
+                    {(routes.cleanest.distance / 1000).toFixed(2)} km
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">⏱️ Time:</span>
+                  <span className="text-green-700 font-bold">
+                    {Math.round(routes.cleanest.time / 60)} minutes
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                  <span className="font-semibold text-gray-700">
+                    🌫️ Exposure Score:
+                  </span>
+                  <span className="text-green-700 font-bold">
+                    {routes.cleanest.exposure.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigateRoute("cleanest")}
+                  className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  🧭 Navigate
+                </button>
+                <button
+                  onClick={() => saveRoute("cleanest")}
+                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  💾 Save Route
+                </button>
+              </div>
+            </div>
+          </div>
         )}
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-yellow-200">
+          <div className="flex items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">
+              📚 Your Saved Routes
+            </h2>
+            <div className="ml-4 px-3 py-1 bg-yellow-400 text-gray-800 rounded-full text-sm font-semibold">
+              {savedRoutes.length} saved
+            </div>
+          </div>
+
+          {savedRoutes.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🗂️</div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No saved routes yet
+              </h3>
+              <p className="text-gray-500">
+                Start by finding and saving your first clean-air route!
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedRoutes.map((route) => (
+                <div
+                  key={route.id}
+                  onClick={() => displaySavedRoute(route)}
+                  className="bg-gradient-to-br from-white to-yellow-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 cursor-pointer border border-yellow-200"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <div
+                        className={`w-3 h-3 rounded-full mr-2 ${
+                          route.routeType === "fastest"
+                            ? "bg-blue-500"
+                            : "bg-green-500"
+                        }`}
+                      ></div>
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          route.routeType === "fastest"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {route.routeType}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3 className="font-bold text-gray-800 mb-3 text-lg line-clamp-2">
+                    {route.name || "Unnamed Route"}
+                  </h3>
+
+                  <div className="space-y-2 mb-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">📏 Distance:</span>
+                      <span className="font-semibold">
+                        {(route.distance / 1000).toFixed(2)} km
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">⏱️ Time:</span>
+                      <span className="font-semibold">
+                        {Math.round(route.time / 60)} min
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">🌫️ Exposure:</span>
+                      <span className="font-semibold">
+                        {route.exposure.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500 mb-4">
+                    <div className="mb-1">
+                      <span className="font-medium">📍 From:</span>{" "}
+                      {route.startName ||
+                        `${route.start.coordinates[1]}, ${route.start.coordinates[0]}`}
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-medium">🎯 To:</span>{" "}
+                      {route.endName ||
+                        `${route.end.coordinates[1]}, ${route.end.coordinates[0]}`}
+                    </div>
+                    <div>
+                      <span className="font-medium">💾 Saved:</span>{" "}
+                      {new Date(route.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateRoute(route);
+                      }}
+                      className="flex-1 py-2 px-3 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                    >
+                      🧭 Navigate
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRoute(route.id);
+                      }}
+                      className="py-2 px-3 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
