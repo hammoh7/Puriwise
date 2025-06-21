@@ -60,7 +60,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${params.startLat},${params.startLng}&destination=${params.endLat},${params.endLng}&key=${mapsApiKey}&mode=walking&alternatives=true`;
+    const mode =
+      (searchParams.get("mode") as "walking" | "cycling") || "walking";
+
+    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${params.startLat},${params.startLng}&destination=${params.endLat},${params.endLng}&key=${mapsApiKey}&mode=${mode}&alternatives=true`;
     const directionsResponse = await fetch(directionsUrl);
     const directionsData = await directionsResponse.json();
 
@@ -73,7 +76,7 @@ export async function GET(request: NextRequest) {
     console.log("Fastest route found");
     const fastestPolyline = fastestRoute.overview_polyline.points;
 
-    const buffer = 0.15; 
+    const buffer = 0.15;
     const minLat = Math.min(params.startLat, params.endLat) - buffer;
     const maxLat = Math.max(params.startLat, params.endLat) + buffer;
     const minLng = Math.min(params.startLng, params.endLng) - buffer;
@@ -128,7 +131,9 @@ export async function GET(request: NextRequest) {
         const alternativeRoute = directionsData.routes[1];
         cleanestPolyline = alternativeRoute.overview_polyline.points;
         cleanestDistance = alternativeRoute.legs[0].distance.value;
-        cleanestTime = alternativeRoute.legs[0].duration.value;
+        cleanestTime =
+          alternativeRoute.legs[0].duration.value *
+          (mode === "cycling" ? 0.7 : 1);
       } else {
         console.warn("No alternative routes, falling back to fastest route");
         cleanestPolyline = fastestPolyline;
@@ -171,7 +176,7 @@ export async function GET(request: NextRequest) {
         lat2: number,
         lng2: number
       ) => {
-        const R = 6371e3; 
+        const R = 6371e3;
         const φ1 = (lat1 * Math.PI) / 180;
         const φ2 = (lat2 * Math.PI) / 180;
         const Δφ = ((lat2 - lat1) * Math.PI) / 180;
@@ -253,7 +258,9 @@ export async function GET(request: NextRequest) {
           const alternativeRoute = directionsData.routes[1];
           cleanestPolyline = alternativeRoute.overview_polyline.points;
           cleanestDistance = alternativeRoute.legs[0].distance.value;
-          cleanestTime = alternativeRoute.legs[0].duration.value;
+          cleanestTime =
+            alternativeRoute.legs[0].duration.value *
+            (mode === "cycling" ? 0.7 : 1);
         } else {
           console.warn("No alternative routes, falling back to fastest route");
           cleanestPolyline = fastestPolyline;
@@ -278,13 +285,14 @@ export async function GET(request: NextRequest) {
         );
         const cleanestLine = turf.lineString(cleanestCoords);
         cleanestDistance = turf.length(cleanestLine, { units: "meters" });
-        cleanestTime = cleanestDistance / 1.4; 
+        const baseSpeed = mode === "cycling" ? 4 : 1.4;
+        cleanestTime = cleanestDistance / baseSpeed;
       }
     }
 
     const samplePoints = (line: any, interval: number) => {
       const length = turf.length(line, { units: "meters" });
-      const numSamples = Math.min(Math.ceil(length / interval), 10); 
+      const numSamples = Math.min(Math.ceil(length / interval), 10);
       const samples = [];
       for (let i = 0; i <= numSamples; i++) {
         const dist = (i / numSamples) * length;

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const savedRoutes = await prisma.savedRoute.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" }, 
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         name: true,
@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
         end: true,
         endName: true,
         createdAt: true,
+        mode: true,
       },
     });
 

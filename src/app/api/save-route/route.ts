@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       exposure,
       distance,
       time,
+      mode,
     } = await request.json();
 
     if (!userId || !routeType || !polyline) {
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
         exposure,
         distance,
         time,
+        mode: mode,
       },
     });
 
