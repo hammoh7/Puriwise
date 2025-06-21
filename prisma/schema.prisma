@@ -13,8 +13,10 @@ model UserProfile {
   uid              String     @unique
   email            String
   age              Int?
+  gender           String?
   healthConditions String[]   @default([])   
-  activityLevel    String?    
+  activityLevel    String?  
+  pollutionSensitivity String?  
   savedCities      String[]   @default([])  
   lastAQIReport    AQIReport?
   profileComplete  Boolean    @default(false)
