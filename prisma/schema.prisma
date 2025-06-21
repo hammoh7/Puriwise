@@ -62,7 +62,8 @@ model SavedRoute {
   polyline  String      
   exposure  Float      
   distance  Float       
-  time      Float       
+  time      Float   
+  mode      String?    
   createdAt DateTime    @default(now())
   user      UserProfile @relation(fields: [userId], references: [id])
 }
