@@ -51,26 +51,31 @@ const NavigationPage = () => {
             {
               featureType: "all",
               elementType: "geometry",
-              stylers: [{ hue: "#ffd700" }, { saturation: 15 }, { lightness: 5 }]
+              stylers: [
+                { hue: "#ffd700" },
+                { saturation: 15 },
+                { lightness: 5 },
+              ],
             },
             {
               featureType: "water",
               elementType: "geometry",
-              stylers: [{ color: "#e8f4f8" }]
+              stylers: [{ color: "#e8f4f8" }],
             },
             {
               featureType: "landscape",
               elementType: "geometry",
-              stylers: [{ color: "#fffbf0" }]
-            }
-          ]
+              stylers: [{ color: "#fffbf0" }],
+            },
+          ],
         });
         setMap(mapInstance);
 
         const path = google.maps.geometry.encoding.decodePath(
           routeData.polyline
         );
-        const routeColor = routeData.routeType === "fastest" ? "#FF6B35" : "#4ECDC4";
+        const routeColor =
+          routeData.routeType === "fastest" ? "#FF6B35" : "#4ECDC4";
         routePathRef.current = new google.maps.Polyline({
           path,
           strokeColor: routeColor,
@@ -122,7 +127,10 @@ const NavigationPage = () => {
       {
         origin: routeData.start,
         destination: routeData.end,
-        travelMode: google.maps.TravelMode.WALKING,
+        travelMode:
+          routeData.mode === "cycling"
+            ? google.maps.TravelMode.BICYCLING
+            : google.maps.TravelMode.WALKING,
       },
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
@@ -196,7 +204,7 @@ const NavigationPage = () => {
                 newPosition,
                 path
               );
-              const speedMps = speed || 1.4;
+              const speedMps = routeData.mode === "cycling" ? 4 : 1.4;
               setEstimatedTime(
                 remainingDistance > 0
                   ? Math.round(remainingDistance / speedMps / 60)
@@ -318,10 +326,10 @@ const NavigationPage = () => {
 
   return (
     <div className="h-screen w-screen relative m-0 p-0 overflow-hidden bg-gradient-to-br from-yellow-50 to-yellow-100">
-      <div 
-        ref={mapRef} 
+      <div
+        ref={mapRef}
         className={`h-full w-full transition-all duration-300 ${
-          navigationStarted ? 'rounded-none' : 'rounded-3xl'
+          navigationStarted ? "rounded-none" : "rounded-3xl"
         }`}
       />
 
@@ -345,34 +353,34 @@ const NavigationPage = () => {
             <div className="w-15 h-15 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mx-auto mb-5 flex items-center justify-center text-2xl">
               🧭
             </div>
-            
-            <h2 
+
+            <h2
               id="start-navigation-title"
               className="mb-3 text-yellow-800 text-2xl font-bold tracking-tight"
             >
               Start Your Journey
             </h2>
-            
-            <p 
+
+            <p
               id="start-navigation-description"
               className="mb-8 text-yellow-700 text-base leading-relaxed"
             >
               Choose your starting point to begin navigation
             </p>
-            
+
             <div className="flex flex-col gap-4">
               <button
                 onClick={() => handleStartOption(true)}
-                onKeyDown={(e) => e.key === 'Enter' && handleStartOption(true)}
+                onKeyDown={(e) => e.key === "Enter" && handleStartOption(true)}
                 className="px-6 py-4 bg-gradient-to-r from-teal-400 to-teal-500 text-white rounded-2xl font-semibold text-base shadow-lg shadow-teal-400/30 flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-teal-400/40 focus:outline-none focus:ring-4 focus:ring-teal-400/20"
                 aria-label="Start navigation from current location"
               >
                 📍 Current Location
               </button>
-              
+
               <button
                 onClick={() => handleStartOption(false)}
-                onKeyDown={(e) => e.key === 'Enter' && handleStartOption(false)}
+                onKeyDown={(e) => e.key === "Enter" && handleStartOption(false)}
                 className="px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-semibold text-base shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/40 focus:outline-none focus:ring-4 focus:ring-orange-500/20"
                 aria-label="Start navigation from selected starting location"
               >
@@ -394,9 +402,7 @@ const NavigationPage = () => {
               <span className="text-lg">⚠️</span>
               <strong className="text-base">Location Error</strong>
             </div>
-            <p className="m-0 text-sm leading-relaxed opacity-90">
-              {geoError}
-            </p>
+            <p className="m-0 text-sm leading-relaxed opacity-90">{geoError}</p>
           </div>
           <button
             onClick={() => {
@@ -443,7 +449,21 @@ const NavigationPage = () => {
                 Estimated Time
               </p>
               <p className="mt-1 text-lg text-yellow-800 font-bold">
-                {estimatedTime !== null ? `${estimatedTime} min` : "Calculating..."}
+                {estimatedTime !== null
+                  ? `${estimatedTime} min`
+                  : "Calculating..."}
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="text-xl mb-2">
+                {routeData?.mode === "cycling" ? "🚴" : "🚶"}
+              </div>
+              <p className="m-0 text-xs text-yellow-700 font-medium uppercase tracking-wider">
+                Travel Mode
+              </p>
+              <p className="mt-1 text-sm text-yellow-800 font-semibold">
+                {routeData?.mode}
               </p>
             </div>
 
@@ -455,16 +475,28 @@ const NavigationPage = () => {
               <div className="mt-1">
                 {aqi !== null ? (
                   <>
-                    <div className={`inline-block text-white px-3 py-1 rounded-xl text-base font-bold mb-1 ${getAQIColor(aqi)}`}>
+                    <div
+                      className={`inline-block text-white px-3 py-1 rounded-xl text-base font-bold mb-1 ${getAQIColor(
+                        aqi
+                      )}`}
+                    >
                       {aqi}
                     </div>
-                    <p className={`m-0 text-xs font-semibold ${
-                      aqi <= 50 ? 'text-teal-600' :
-                      aqi <= 100 ? 'text-yellow-600' :
-                      aqi <= 150 ? 'text-orange-600' :
-                      aqi <= 200 ? 'text-red-600' :
-                      aqi <= 300 ? 'text-purple-600' : 'text-red-700'
-                    }`}>
+                    <p
+                      className={`m-0 text-xs font-semibold ${
+                        aqi <= 50
+                          ? "text-teal-600"
+                          : aqi <= 100
+                          ? "text-yellow-600"
+                          : aqi <= 150
+                          ? "text-orange-600"
+                          : aqi <= 200
+                          ? "text-red-600"
+                          : aqi <= 300
+                          ? "text-purple-600"
+                          : "text-red-700"
+                      }`}
+                    >
                       {getAQILabel(aqi)}
                     </p>
                   </>

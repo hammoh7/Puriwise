@@ -20,6 +20,7 @@ interface SavedRoute {
   end: { type: string; coordinates: [number, number] };
   endName?: string | null;
   createdAt: string;
+  mode: string;
 }
 
 const CleanAirFinder = () => {
@@ -58,6 +59,7 @@ const CleanAirFinder = () => {
     lat: number | null;
     lng: number | null;
   }>({ lat: null, lng: null });
+  const [mode, setMode] = useState<"walking" | "cycling">("walking");
   const [isLoading, setIsLoading] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const startInputRef = useRef<HTMLInputElement>(null);
@@ -294,7 +296,7 @@ const CleanAirFinder = () => {
       setError(null);
       setIsLoading(true);
       const response = await fetch(
-        `/api/cleanroute?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}&userId=${userProfileId}`
+        `/api/cleanroute?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}&userId=${userProfileId}&mode=${mode}`
       );
 
       if (!response.ok) {
@@ -370,6 +372,7 @@ const CleanAirFinder = () => {
         distance: routes[typeOrRoute].distance,
         start: { lat: start.lat, lng: start.lng },
         end: { lat: end.lat, lng: end.lng },
+        mode: mode,
       };
     } else {
       routeData = {
@@ -384,6 +387,7 @@ const CleanAirFinder = () => {
           lat: typeOrRoute.end.coordinates[1],
           lng: typeOrRoute.end.coordinates[0],
         },
+        mode: typeOrRoute.mode,
       };
     }
     setRouteData(routeData);
@@ -411,6 +415,7 @@ const CleanAirFinder = () => {
           exposure: route.exposure,
           distance: route.distance,
           time: route.time,
+          mode: mode,
         }),
       });
       if (!response.ok) throw new Error("Failed to save route");
@@ -513,88 +518,68 @@ const CleanAirFinder = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">⚠️</span>
-              <p className="font-medium">{error}</p>
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl shadow-sm animate-in slide-in-from-top duration-300">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-5 h-5 text-red-400 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
             </div>
           </div>
         )}
 
-        <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 mb-8 border border-yellow-200/50">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Plan Your Clean Journey
-            </h2>
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600/10 to-green-600/10 px-8 py-6 border-b border-gray-100">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 mr-2 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
+                  />
+                </svg>
+                Plan Your Clean Journey
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Enter your locations and choose your preferred travel mode
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <input
-                  ref={startInputRef}
-                  type="text"
-                  placeholder="Starting location..."
-                  className="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-yellow-200 focus:ring-4 focus:ring-yellow-200/50 focus:border-yellow-400 outline-none transition-all duration-300 bg-white/80 text-gray-800 placeholder-gray-500 group-hover:border-yellow-300"
-                />
-                <label className="absolute -top-2 left-4 px-2 bg-white text-xs font-semibold text-gray-600 rounded">
-                  📍 From
-                </label>
-              </div>
-
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                </div>
-                <input
-                  ref={endInputRef}
-                  type="text"
-                  placeholder="Destination..."
-                  className="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-yellow-200 focus:ring-4 focus:ring-yellow-200/50 focus:border-yellow-400 outline-none transition-all duration-300 bg-white/80 text-gray-800 placeholder-gray-500 group-hover:border-yellow-300"
-                />
-                <label className="absolute -top-2 left-4 px-2 bg-white text-xs font-semibold text-gray-600 rounded">
-                  🎯 To
-                </label>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button
-                onClick={handleCurrentLocation}
-                disabled={isLoading}
-                className="group relative px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-w-[180px]"
-              >
-                <div className="flex items-center justify-center">
-                  {isLoading ? (
-                    <>
+          <div className="p-8">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                      Starting Point
+                    </span>
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <span>Locating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                        className="w-5 h-5 text-green-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -604,56 +589,36 @@ const CleanAirFinder = () => {
                           strokeLinejoin="round"
                           strokeWidth="2"
                           d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        ></path>
+                        />
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        ></path>
+                        />
                       </svg>
-                      <span>Use My Location</span>
-                    </>
-                  )}
+                    </div>
+                    <input
+                      ref={startInputRef}
+                      type="text"
+                      placeholder="Enter starting location..."
+                      aria-label="Starting location"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-green-100 focus:border-green-400 outline-none transition-all duration-300 bg-white text-gray-800 placeholder-gray-500 group-hover:border-gray-300 text-base"
+                    />
+                  </div>
                 </div>
-              </button>
 
-              <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
-              <div className="sm:hidden w-8 h-px bg-gray-300"></div>
-
-              <button
-                onClick={fetchRoutes}
-                disabled={!start || !end || !userProfileId || isLoading}
-                className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-w-[200px]"
-              >
-                <div className="flex items-center justify-center">
-                  {isLoading ? (
-                    <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                      Destination
+                    </span>
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <span>Finding Routes...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                        className="w-5 h-5 text-red-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -662,34 +627,206 @@ const CleanAirFinder = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
-                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-                        ></path>
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
                       </svg>
-                      <span>Find Clean Routes</span>
-                    </>
-                  )}
+                    </div>
+                    <input
+                      ref={endInputRef}
+                      type="text"
+                      placeholder="Enter destination..."
+                      aria-label="Destination"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-red-100 focus:border-red-400 outline-none transition-all duration-300 bg-white text-gray-800 placeholder-gray-500 group-hover:border-gray-300 text-base"
+                    />
+                  </div>
                 </div>
+              </div>
 
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"></div>
-              </button>
-            </div>
+              <div className="space-y-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Travel Mode
+                </label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    className={`flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-semibold transition-all duration-300 border-2 ${
+                      mode === "walking"
+                        ? "bg-blue-500 text-white border-blue-500 shadow-lg scale-105"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                    onClick={() => setMode("walking")}
+                    aria-pressed={mode === "walking"}
+                  >
+                    <span className="text-2xl mr-3">🚶</span>
+                    <div className="text-left">
+                      <div className="font-semibold">Walking</div>
+                      <div className="text-xs opacity-75">
+                        Eco-friendly • Healthy
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    className={`flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-semibold transition-all duration-300 border-2 ${
+                      mode === "cycling"
+                        ? "bg-blue-500 text-white border-blue-500 shadow-lg scale-105"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                    onClick={() => setMode("cycling")}
+                    aria-pressed={mode === "cycling"}
+                  >
+                    <span className="text-2xl mr-3">🚴</span>
+                    <div className="text-left">
+                      <div className="font-semibold">Cycling</div>
+                      <div className="text-xs opacity-75">Fast • Green</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-500 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 mr-2 text-yellow-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <button
+                  onClick={handleCurrentLocation}
+                  disabled={isLoading}
+                  className="flex-1 group relative px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                  aria-label="Use current location"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  ></path>
-                </svg>
-                Start typing to search for locations or use your current
-                location
-              </p>
+                  <div className="flex items-center justify-center">
+                    {isLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Locating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          ></path>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                          ></path>
+                        </svg>
+                        <span>Use My Location</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={fetchRoutes}
+                  disabled={!start || !end || !userProfileId || isLoading}
+                  className="flex-1 group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-4 focus:ring-blue-200"
+                >
+                  <div className="flex items-center justify-center">
+                    {isLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Finding Routes...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
+                          ></path>
+                        </svg>
+                        <span>Find Clean Routes</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="w-5 h-5 text-blue-500 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Getting Started
+                    </h4>
+                    <p className="text-sm text-blue-700">
+                      Start typing to search for locations, use your current
+                      location as a starting point, or enter specific addresses.
+                      We'll find the cleanest air quality routes for your
+                      journey.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -851,13 +988,16 @@ const CleanAirFinder = () => {
                             : "bg-green-100 text-green-800"
                         }`}
                       >
-                        {route.routeType}
+                        {route.routeType} • {route.mode}
                       </span>
                     </div>
                   </div>
 
                   <h3 className="font-bold text-gray-800 mb-3 text-lg line-clamp-2">
                     {route.name || "Unnamed Route"}
+                    <span className="ml-2 text-sm font-normal text-gray-500">
+                      ({route.mode})
+                    </span>
                   </h3>
 
                   <div className="space-y-2 mb-4 text-sm">
