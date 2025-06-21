@@ -7,6 +7,7 @@ interface RouteData {
   distance: number;
   start: { lat: number; lng: number };
   end: { lat: number; lng: number };
+  mode: string;
 }
 
 interface RouteContextType {
