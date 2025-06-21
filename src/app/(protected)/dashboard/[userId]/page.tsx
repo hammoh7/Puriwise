@@ -13,7 +13,6 @@ const DashboardPage = () => {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false);
   const [aqi, setAqi] = useState<number | null>(null);
   const [lat, setLat] = useState<number | null>(null);
   const [lon, setLon] = useState<number | null>(null);
@@ -99,12 +98,15 @@ const DashboardPage = () => {
   };
 
   const getAQIColor = (aqi: number) => {
-    if (aqi <= 50) return "text-green-600 bg-green-50 border-green-200";
-    if (aqi <= 100) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-    if (aqi <= 150) return "text-orange-600 bg-orange-50 border-orange-200";
-    if (aqi <= 200) return "text-red-600 bg-red-50 border-red-200";
-    if (aqi <= 300) return "text-purple-600 bg-purple-50 border-purple-200";
-    return "text-rose-800 bg-rose-50 border-rose-200";
+    if (aqi <= 50)
+      return "text-emerald-700 bg-emerald-50/90 border-emerald-200/60";
+    if (aqi <= 100) return "text-amber-700 bg-amber-50/90 border-amber-200/60";
+    if (aqi <= 150)
+      return "text-orange-700 bg-orange-50/90 border-orange-200/60";
+    if (aqi <= 200) return "text-red-700 bg-red-50/90 border-red-200/60";
+    if (aqi <= 300)
+      return "text-violet-700 bg-violet-50/90 border-violet-200/60";
+    return "text-rose-800 bg-rose-50/90 border-rose-200/60";
   };
 
   const navigateToAdvisor = () => {
@@ -117,295 +119,159 @@ const DashboardPage = () => {
     if (user?.uid) {
       router.push(`/dashboard/${user.uid}/clean-finder`);
     }
-    // setIsComingSoonModalOpen(true);
-  };
-
-  const ComingSoonModal = () => {
-    if (!isComingSoonModalOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-400 to-green-600 p-6 text-white text-center">
-            <div className="text-6xl mb-4">🚀</div>
-            <h2 className="text-2xl font-bold mb-2">Coming Soon!</h2>
-            <p className="text-green-100">We're working on something amazing</p>
-          </div>
-
-          <div className="p-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-3">
-                Clean Air Route Feature
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                We're developing an intelligent route planning system that will
-                help you find the cleanest air quality paths for your daily
-                commute and outdoor activities.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-2xl p-4 mb-6">
-              <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                <span className="text-green-500 mr-2">✨</span>
-                What's Coming:
-              </h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">•</span>
-                  Real-time air quality route optimization
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">•</span>
-                  Multiple route options with AQI data
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">•</span>
-                  Historical air quality patterns
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">•</span>
-                  Health-based recommendations
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 mb-6 border border-green-100">
-              <div className="flex items-center justify-center mb-2">
-                <span className="text-2xl mr-2">📧</span>
-                <span className="font-semibold text-green-800">
-                  Stay Updated
-                </span>
-              </div>
-              <p className="text-sm text-green-700 text-center">
-                We'll notify you as soon as this feature is ready!
-              </p>
-            </div>
-
-            <button
-              onClick={() => setIsComingSoonModalOpen(false)}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              Got it, thanks!
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
-      <HeaderBar onLocationClick={() => setIsLocationModalOpen(true)} />
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 relative">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,rgba(251,191,36,0.15),transparent)]"></div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 tracking-tight">
-            Welcome to Your Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Monitor air quality and stay healthy
-          </p>
-        </div>
+      <div className="relative z-10">
+        <HeaderBar onLocationClick={() => setIsLocationModalOpen(true)} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
-          <div className="lg:col-span-2">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 p-6 h-full">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-white font-bold text-lg">
-                    {user?.email?.charAt(0).toUpperCase()}
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <header className="text-center mb-12">
+            <h1 className="text-4xl font-light text-gray-800 mb-3 tracking-wide">
+              Welcome to Your Dashboard
+            </h1>
+            <p className="text-gray-600 text-lg font-light">
+              Monitor air quality and stay healthy
+            </p>
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent mx-auto mt-4"></div>
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 overflow-hidden h-full">
+                {lat !== null && lon !== null ? (
+                  <div className="relative h-full min-h-[400px]">
+                    <MapComponent lat={lat} lon={lon} />
+
+                    <div className="absolute top-4 right-4 z-10">
+                      {aqi !== null ? (
+                        <div
+                          className={`p-4 rounded-xl shadow-lg border-2 backdrop-blur-sm ${getAQIColor(
+                            aqi
+                          )}`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-bold text-lg flex items-center">
+                              <span className="mr-2">🌬️</span> Air Quality
+                            </h3>
+                            <button className="hover:scale-110 transition-transform">
+                              🔄
+                            </button>
+                          </div>
+
+                          <div className="text-center mb-3">
+                            <p className="text-3xl font-bold mb-1">{aqi}</p>
+                            <p className="text-sm font-medium opacity-75">
+                              AQI Index
+                            </p>
+                          </div>
+
+                          <div className="text-center mb-3">
+                            <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-white/50">
+                              {getSeverity(aqi)}
+                            </span>
+                          </div>
+
+                          <div className="text-center">
+                            <p className="font-medium text-sm mb-1">
+                              📍 {userProfile?.currentLocation || "Unknown"}
+                            </p>
+                            <p className="text-xs opacity-75">
+                              Updated: {new Date().toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200">
+                          <div className="text-center text-gray-600">
+                            <span className="text-2xl mb-2 block">📡</span>
+                            <p className="font-medium">Loading AQI data...</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full min-h-[400px] text-gray-500">
+                    <div className="text-center">
+                      <span className="text-4xl mb-4 block">📍</span>
+                      <p className="text-lg font-medium">
+                        Set your location to view map
+                      </p>
+                      <button
+                        onClick={() => setIsLocationModalOpen(true)}
+                        className="mt-4 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                      >
+                        Set Location
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 space-y-6">
+              <article
+                onClick={navigateToAdvisor}
+                className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/40 p-6 cursor-pointer hover:shadow-xl hover:bg-white/80 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-start mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <span className="text-white text-xl">🩺</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-light text-gray-800 tracking-wide mb-1">
+                      Health Advisor
+                    </h3>
+                    <div className="w-8 h-px bg-gradient-to-r from-blue-400 to-transparent"></div>
+                  </div>
+                </div>
+                <p className="text-gray-600 font-light leading-relaxed mb-4 text-sm">
+                  Get personalized health recommendations based on current air
+                  quality conditions and your health profile.
+                </p>
+                <div className="flex items-center text-blue-600 font-light group-hover:text-blue-700 transition-colors text-sm">
+                  <span className="tracking-wide">Explore Health Tips</span>
+                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">
+                    →
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  User Profile
-                </h2>
-              </div>
+              </article>
 
-              {user && (
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                      Email Address
-                    </label>
-                    <p className="text-gray-800 font-medium bg-gray-50 p-3 rounded-lg">
-                      {user.email}
-                    </p>
+              <article
+                onClick={navigateToCleanRoute}
+                className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/40 p-6 cursor-pointer hover:shadow-xl hover:bg-white/80 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-start mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <span className="text-white text-xl">🛣️</span>
                   </div>
-
-                  {userProfile && (
-                    <>
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                          Profile Status
-                        </label>
-                        <div className="flex items-center">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              userProfile.profileComplete
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            <span
-                              className={`w-2 h-2 rounded-full mr-2 ${
-                                userProfile.profileComplete
-                                  ? "bg-green-400"
-                                  : "bg-yellow-400"
-                              }`}
-                            ></span>
-                            {userProfile.profileComplete
-                              ? "Complete"
-                              : "Incomplete"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                          Current Location
-                        </label>
-                        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                          <span className="text-gray-800 font-medium">
-                            {userProfile.currentLocation || "Not set"}
-                          </span>
-                          <button
-                            onClick={() => setIsLocationModalOpen(true)}
-                            className="text-amber-600 hover:text-amber-700 font-medium text-sm"
-                          >
-                            📍 Change
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-3">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 overflow-hidden h-full">
-              {lat !== null && lon !== null ? (
-                <div className="relative h-full min-h-[400px]">
-                  <MapComponent lat={lat} lon={lon} />
-
-                  <div className="absolute top-4 right-4 z-10">
-                    {aqi !== null ? (
-                      <div
-                        className={`p-4 rounded-xl shadow-lg border-2 backdrop-blur-sm ${getAQIColor(
-                          aqi
-                        )}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-bold text-lg flex items-center">
-                            <span className="mr-2">🌬️</span> Air Quality
-                          </h3>
-                          <button className="hover:scale-110 transition-transform">
-                            🔄
-                          </button>
-                        </div>
-
-                        <div className="text-center mb-3">
-                          <p className="text-3xl font-bold mb-1">{aqi}</p>
-                          <p className="text-sm font-medium opacity-75">
-                            AQI Index
-                          </p>
-                        </div>
-
-                        <div className="text-center mb-3">
-                          <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-white/50">
-                            {getSeverity(aqi)}
-                          </span>
-                        </div>
-
-                        <div className="text-center">
-                          <p className="font-medium text-sm mb-1">
-                            📍 {userProfile?.currentLocation || "Unknown"}
-                          </p>
-                          <p className="text-xs opacity-75">
-                            Updated: {new Date().toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200">
-                        <div className="text-center text-gray-600">
-                          <span className="text-2xl mb-2 block">📡</span>
-                          <p className="font-medium">Loading AQI data...</p>
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex-1">
+                    <h3 className="text-lg font-light text-gray-800 tracking-wide mb-1">
+                      Clean Air Route
+                    </h3>
+                    <div className="w-8 h-px bg-gradient-to-r from-green-400 to-transparent"></div>
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center h-full min-h-[400px] text-gray-500">
-                  <div className="text-center">
-                    <span className="text-4xl mb-4 block">📍</span>
-                    <p className="text-lg font-medium">
-                      Set your location to view map
-                    </p>
-                    <button
-                      onClick={() => setIsLocationModalOpen(true)}
-                      className="mt-4 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
-                    >
-                      Set Location
-                    </button>
-                  </div>
+                <p className="text-gray-600 font-light leading-relaxed mb-4 text-sm">
+                  Find the cleanest air quality routes for your daily commute
+                  and outdoor activities.
+                </p>
+                <div className="flex items-center text-green-600 font-light group-hover:text-green-700 transition-colors text-sm">
+                  <span className="tracking-wide">Find Clean Routes</span>
+                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">
+                    →
+                  </span>
                 </div>
-              )}
+              </article>
             </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div
-            onClick={navigateToAdvisor}
-            className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 p-8 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-14 h-14 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                <span className="text-white text-2xl">🩺</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">
-                Health Advisor
-              </h3>
-            </div>
-            <p className="text-gray-600 mb-4 leading-relaxed">
-              Get personalized health recommendations based on current air
-              quality conditions and your health profile.
-            </p>
-            <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700">
-              <span>Explore Health Tips</span>
-              <span className="ml-2 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </div>
-          </div>
-
-          <div
-            onClick={navigateToCleanRoute}
-            className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-yellow-100 p-8 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 relative"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-14 h-14 bg-gradient-to-r from-green-400 to-green-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                <span className="text-white text-2xl">🛣️</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800">
-                Clean Air Route
-              </h3>
-            </div>
-            <p className="text-gray-600 mb-4 leading-relaxed">
-              Find the cleanest air quality routes for your daily commute and
-              outdoor activities.
-            </p>
-            <div className="flex items-center text-green-600 font-medium group-hover:text-green-700">
-              <span>Find Clean Routes</span>
-              <span className="ml-2 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </div>
-          </div>
-        </div>
+        </main>
       </div>
 
       <LocationModel
@@ -413,8 +279,6 @@ const DashboardPage = () => {
         onClose={() => setIsLocationModalOpen(false)}
         onLocationSet={handleLocationSet}
       />
-
-      <ComingSoonModal />
     </div>
   );
 };

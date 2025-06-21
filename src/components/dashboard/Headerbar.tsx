@@ -27,6 +27,13 @@ const HeaderBar = ({ onLocationClick }: HeaderBarProps) => {
     }
   };
 
+  const handleProfileClick = () => {
+    if (user?.uid) {
+      router.push(`/dashboard/${user.uid}/profile`);
+      setDropdownOpen(false);
+    }
+  };
+
   const getUserInitials = (email: string) => {
     return email.charAt(0).toUpperCase();
   };
@@ -63,7 +70,6 @@ const HeaderBar = ({ onLocationClick }: HeaderBarProps) => {
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-yellow-100/95 via-amber-100/95 to-orange-100/95 backdrop-blur-md py-3 border-b border-yellow-200/50 shadow-sm">
       <div className="container mx-auto px-6 flex justify-between items-center">
-
         <Link href="/" className="flex items-center space-x-2 group">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -131,6 +137,26 @@ const HeaderBar = ({ onLocationClick }: HeaderBarProps) => {
                     </div>
 
                     <div className="py-2">
+                      <button
+                        onClick={handleProfileClick}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <svg
+                          className="mr-3 w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        Profile
+                      </button>
+
                       <div className="border-t border-gray-200 my-1"></div>
 
                       <button
