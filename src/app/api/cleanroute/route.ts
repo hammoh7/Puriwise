@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const mapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     const aqiApiKey = process.env.NEXT_PUBLIC_GOOGLE_AIR_QUALITY_API_KEY;
     if (!mapsApiKey || !aqiApiKey) {
       console.error("API keys are not configured");
