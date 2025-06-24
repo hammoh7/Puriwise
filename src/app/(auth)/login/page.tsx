@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
   const { user } = useAuth();
 
@@ -21,15 +22,16 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(""); 
 
     try {
       await loginWithEmail(email, password);
     } catch (error) {
       setIsLoading(false);
       if (error instanceof Error) {
-        alert("Login failed: " + error.message);
+        setError(error.message);
       } else {
-        alert("Login failed: An unknown error occurred.");
+        setError("An unexpected error occurred. Please try again.");
       }
     }
   };
@@ -40,6 +42,13 @@ export default function LoginPage() {
         <h2 className="text-3xl font-playfair font-semibold text-center mb-6 text-text">
           Welcome Back
         </h2>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-text mb-1">
@@ -48,7 +57,10 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError(""); 
+              }}
               required
               className="w-full px-4 py-2 border border-primary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-primary-light text-text"
             />
@@ -60,7 +72,10 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError(""); 
+              }}
               required
               className="w-full px-4 py-2 border border-primary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-primary-light text-text"
             />

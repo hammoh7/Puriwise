@@ -11,6 +11,43 @@ function isFirebaseError(
   return typeof error === "object" && error !== null && "code" in error;
 }
 
+const getAuthErrorMessage = (errorCode: string): string => {
+  switch (errorCode) {
+    case "auth/invalid-credential":
+      return "Invalid email or password. Please check your credentials.";
+    case "auth/user-not-found":
+      return "No account found with this email address.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/user-disabled":
+      return "This account has been disabled. Please contact support.";
+    case "auth/too-many-requests":
+      return "Too many failed attempts. Please try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection.";
+    case "auth/email-already-in-use":
+      return "An account with this email already exists. Please try logging in instead.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters long.";
+    case "auth/operation-not-allowed":
+      return "Email/password accounts are not enabled. Please contact support.";
+    case "auth/invalid-login-credentials":
+      return "Invalid login credentials. Please check your email and password.";
+    case "auth/missing-password":
+      return "Please enter a password.";
+    case "auth/missing-email":
+      return "Please enter an email address.";
+    case "auth/invalid-password":
+      return "Invalid password format.";
+    case "auth/requires-recent-login":
+      return "Please log out and log back in to complete this action.";
+    default:
+      return "An error occurred during authentication. Please try again.";
+  }
+};
+
 const createUserProfile = async (user: User) => {
   try {
     const response = await fetch("/api/user", {
@@ -47,12 +84,9 @@ export const registerWithEmail = async (email: string, password: string) => {
   } catch (error: unknown) {
     console.error("Registration error:", error);
     if (isFirebaseError(error)) {
-      if (error.code === "auth/network-request-failed") {
-        throw new Error("Network error. Please check your connection.");
-      }
-      throw new Error(error.message);
+      throw new Error(getAuthErrorMessage(error.code));
     }
-    throw new Error("Unknown error during registration");
+    throw new Error("An unexpected error occurred during registration.");
   }
 };
 
@@ -69,11 +103,8 @@ export const loginWithEmail = async (email: string, password: string) => {
   } catch (error: unknown) {
     console.error("Login error:", error);
     if (isFirebaseError(error)) {
-      if (error.code === "auth/network-request-failed") {
-        throw new Error("Network error. Please check your connection.");
-      }
-      throw new Error(error.message);
+      throw new Error(getAuthErrorMessage(error.code));
     }
-    throw new Error("Unknown error during login");
+    throw new Error("An unexpected error occurred during login.");
   }
 };
