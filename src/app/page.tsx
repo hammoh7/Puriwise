@@ -69,18 +69,18 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
               icon={<FaMapMarkedAlt />}
-              title="Live AQI Heatmap"
-              description="Visualize pollution hotspots on an interactive map powered by MongoDB's geospatial queries."
+              title="Real time AQI Monitoring"
+              description="Automatically detect the Air Quality Index at your exact location"
             />
             <FeatureCard
               icon={<FaUserMd />}
-              title="Personalized Health Advisories"
-              description="Get AI-generated 'Breathing Plans' based on your health profile using Google Cloud's Vertex AI."
+              title="AI‑Personalized Health Coach"
+              description="Get daily, bite‑sized ‘Breathing Plans’ tailored to your age, conditions, and current AQI—powered by Google Cloud’s Vertex AI."
             />
             <FeatureCard
               icon={<FaRoute />}
-              title="Clean-Air Route Finder"
-              description="Compute walking or cycling directions that minimize exposure to polluted streets."
+              title="Clean‑Air Routing"
+              description="Discover walking or cycling paths optimized to minimize pollution exposure, using our custom routing algorithm and AQI data."
             />
           </div>
         </div>
